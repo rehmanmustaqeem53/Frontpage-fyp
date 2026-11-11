@@ -1,0 +1,5 @@
+asad12@gmail.com    asad12   author
+ali23@gmail.com     ali23    reader
+musa22@gmail.com    musa22   author   blog-ainote database name
+zain12@gmail.com
+Usman2@gmail.com    usman2   reader
