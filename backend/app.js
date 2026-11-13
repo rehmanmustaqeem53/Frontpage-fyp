@@ -1,3 +1,4 @@
+
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -12,9 +13,14 @@ dotenv.config();
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: allowedOrigins,
     credentials: true
   })
 );
@@ -26,5 +32,12 @@ app.use(fileUpload());
 app.use("/api/auth", authRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/comments", commentRoutes);
+
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "Frontpage Backend API is running"
+  });
+});
 
 export default app;
