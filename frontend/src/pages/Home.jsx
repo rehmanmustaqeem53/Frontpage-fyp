@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import api from "../utils/api";
 import { Link } from "react-router-dom";
@@ -10,13 +11,34 @@ const stripHtml = (html) => {
 
 export default function Home() {
   const [blogs, setBlogs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchBlogs = async () => {
     try {
       const res = await api.get("/blogs");
-      setBlogs(res.data.slice(0, 6));
+
+      // Handle different backend response formats
+      const data = res.data;
+
+      const blogsData = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.blogs)
+        ? data.blogs
+        : Array.isArray(data?.posts)
+        ? data.posts
+        : Array.isArray(data?.data)
+        ? data.data
+        : [];
+
+      setBlogs(blogsData.slice(0, 6));
+
+      console.log("Blogs fetched successfully:", blogsData);
+
     } catch (error) {
-      console.log(error);
+      console.error("Error fetching blogs:", error);
+      setBlogs([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -29,13 +51,13 @@ export default function Home() {
 
       {/* HERO SECTION */}
       <section className="text-center py-16 bg-gray-400 dark:bg-gray-800 text-black dark:text-white rounded-xl shadow-lg overflow-hidden transition-colors duration-500">
-        {/* Animated Title */}
+
         <motion.h1
           className="text-4xl md:text-5xl font-bold mb-4"
           initial={{ opacity: 0, y: -20 }}
           animate={{
             opacity: 1,
-            y: [0, -10, 0], // floating animation
+            y: [0, -10, 0],
           }}
           transition={{
             duration: 2,
@@ -43,10 +65,12 @@ export default function Home() {
             repeatType: "loop",
           }}
         >
-          Welcome to <span className="text-blue-400 dark:text-blue-900">Frontpage Blog</span>
+          Welcome to{" "}
+          <span className="text-blue-400 dark:text-blue-900">
+            Frontpage Blog
+          </span>
         </motion.h1>
 
-        {/* Animated Paragraph */}
         <motion.p
           className="text-lg max-w-2xl mx-auto text-gray-700 dark:text-gray-300"
           initial={{ opacity: 0, y: 10 }}
@@ -57,7 +81,6 @@ export default function Home() {
           Join as a reader or become an author and publish your own blogs!
         </motion.p>
 
-        {/* Buttons */}
         <motion.div
           className="mt-6 space-x-4"
           initial={{ opacity: 0 }}
@@ -80,59 +103,75 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* Latest Blogs */}
+      {/* LATEST BLOGS */}
       <section className="mt-16">
+
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center">
           Latest Blogs
         </h2>
+
         <p className="text-center text-gray-500 dark:text-gray-400 mt-1">
           Read the newest posts written by talented authors.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-          {blogs.map((blog) => (
-            <div
-              key={blog._id}
-              className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 hover:shadow-xl transition-colors duration-300"
-            >
-              {blog.image && (
-                <img
-                  src={blog.image}
-                  alt={blog.title}
-                  className="w-full h-48 object-cover rounded-md"
-                />
-              )}
-
-              {/* TITLE + AUTHOR (same line) */}
-              <div className="flex justify-between items-center mt-4">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{blog.title}</h3>
-
-                {blog.author?.name && (
-                  <p className="text-sm text-gray-700 dark:text-gray-300 font-bold">
-                    Author: <span className="font-bold">{blog.author.name}</span>
-                  </p>
-                )}
-              </div>
-
-              <p className="text-gray-600 dark:text-gray-300 mt-2">
-                {stripHtml(blog.description).substring(0, 120)}...
-              </p>
-
-              <Link
-                to={`/blogs/${blog._id}`}
-                className="text-blue-600 dark:text-blue-400 mt-3 inline-block hover:underline"
-              >
-                Read More →
-              </Link>
-            </div>
-          ))}
-        </div>
-
-        {blogs.length === 0 && (
-          <p className="text-center text-gray-500 dark:text-gray-400 mt-10">
-            No blogs posted yet.
+        {loading ? (
+          <p className="text-center mt-10 text-gray-500">
+            Loading blogs...
           </p>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+
+              {blogs.map((blog) => (
+                <div
+                  key={blog._id}
+                  className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 hover:shadow-xl transition-colors duration-300"
+                >
+
+                  {blog.image && (
+                    <img
+                      src={blog.image}
+                      alt={blog.title}
+                      className="w-full h-48 object-cover rounded-md"
+                    />
+                  )}
+
+                  <div className="flex justify-between items-center gap-2 mt-4">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      {blog.title}
+                    </h3>
+
+                    {blog.author?.name && (
+                      <p className="text-sm text-gray-700 dark:text-gray-300 font-bold shrink-0">
+                        Author: {blog.author.name}
+                      </p>
+                    )}
+                  </div>
+
+                  <p className="text-gray-600 dark:text-gray-300 mt-2">
+                    {stripHtml(blog.description).substring(0, 120)}...
+                  </p>
+
+                  <Link
+                    to={`/blogs/${blog._id}`}
+                    className="text-blue-600 dark:text-blue-400 mt-3 inline-block hover:underline"
+                  >
+                    Read More →
+                  </Link>
+
+                </div>
+              ))}
+
+            </div>
+
+            {blogs.length === 0 && (
+              <p className="text-center text-gray-500 dark:text-gray-400 mt-10">
+                No blogs posted yet.
+              </p>
+            )}
+          </>
         )}
+
       </section>
     </div>
   );
