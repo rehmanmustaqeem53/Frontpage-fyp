@@ -1,8 +1,23 @@
+
 import app from "./app.js";
 import { dbConnection } from "./config/db.js";
+import dotenv from "dotenv";
 
-dbConnection();
+dotenv.config();
 
-app.listen(process.env.PORT, () => {
-  console.log(`Server running on PORT ${process.env.PORT}`);
-});
+const PORT = process.env.PORT || 4000;
+
+const startServer = async () => {
+  try {
+    await dbConnection();
+
+    app.listen(PORT, () => {
+      console.log(`Server running on PORT ${PORT}`);
+    });
+  } catch (error) {
+    console.error("Server startup failed:", error.message);
+    process.exit(1);
+  }
+};
+
+startServer();
