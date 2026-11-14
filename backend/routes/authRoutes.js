@@ -1,21 +1,33 @@
+
 import express from "express";
-import { register, login, logout } from "../controllers/authController.js";
-import { isAuthenticated } from "../middleware/authMiddleware.js";
+
+import {
+  register,
+  login,
+  logout,
+} from "../controllers/authController.js";
+
+import {
+  isAuthenticated,
+} from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Register User
+// Register
 router.post("/register", register);
 
-// Login User
+// Login
 router.post("/login", login);
 
-// Logout User
+// Logout
 router.get("/logout", logout);
 
-// Get Logged-in User (for frontend AuthContext.jsx)
+// Get Logged-in User
 router.get("/me", isAuthenticated, (req, res) => {
-  res.json({ user: req.user });
+  res.status(200).json({
+    success: true,
+    user: req.user,
+  });
 });
 
 export default router;
